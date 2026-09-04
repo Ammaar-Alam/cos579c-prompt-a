@@ -11,6 +11,7 @@ class GridAgentTests(unittest.TestCase):
 
     def test_parse_direction(self):
         self.assertEqual(parse_direction("right"), "right")
+        self.assertEqual(parse_direction('{"tool":"down"}'), "down")
 
     def test_agents_reach_goal_and_memory_can_hurt(self):
         baseline = Agent()

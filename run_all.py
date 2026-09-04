@@ -13,6 +13,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--episodes", type=Path, default=ROOT / "episodes.json")
     parser.add_argument("--timeout", type=int, default=120)
+    parser.add_argument("--dashboard-url")
     args = parser.parse_args()
     output_dir = ROOT / "results"
     output_dir.mkdir(exist_ok=True)
@@ -30,6 +31,8 @@ def main() -> None:
                 "--output",
                 str(output_dir / f"{provider}-{condition}.json"),
             ]
+            if args.dashboard_url:
+                command.extend(["--dashboard-url", args.dashboard_url])
             if memory:
                 command.append("--memory")
             print(f"Running {provider} {condition}...", flush=True)

@@ -12,6 +12,8 @@ python3 -m unittest -v
 python3 run_all.py
 ```
 
+For a live localhost view, run `python3 dashboard.py`, open <http://127.0.0.1:8765>, and press **Start run**. The page shows the 5×5 board, each JSON tool decision, returned coordinate/goal status, and the four-condition ledger while `run_all.py` executes.
+
 `run_all.py` invokes all four conditions against the same `episodes.json` file:
 
 - Codex baseline and memory, using `codex exec --model codex-p4`
