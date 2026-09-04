@@ -10,6 +10,7 @@ Each episode uses a 5×5 grid:
 - The goal is hidden from the agent.
 - The only available tools are `right` and `down`.
 - After every move, the environment returns the new coordinate and `goal: true` or `false`.
+- A boundary move is a failed tool call that returns the current coordinate and an error; it is counted and the episode continues.
 - The score is the number of tool decisions needed to find the goal.
 
 The baseline receives the current coordinate and previous results. The memory condition additionally receives the successful goal coordinates observed in earlier episodes. Memory is intentionally small and transparent so we can inspect exactly what was given to the model.
@@ -43,7 +44,7 @@ python3 run_experiment.py codex --model gpt-5.6-luna --memory
 python3 run_experiment.py claude --memory
 ```
 
-Results are written to `results/` as JSON and ignored by Git. Each result includes the provider, model, condition, per-episode `calls` and `success`, and `remembered_goals`.
+Results are written to [`results/`](results/) as committed JSON evidence. `run_all.py` also writes [`results/summary.md`](results/summary.md), comparing solved episodes, total calls, remembered goals, and failures. Each successful result includes the provider, model, condition, per-episode `calls` and `success`, and `remembered_goals`.
 
 ## JSON decisions
 

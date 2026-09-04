@@ -8,8 +8,9 @@ from run_experiment import run
 
 class GridAgentTests(unittest.TestCase):
     def test_tool_returns_coordinate_and_goal(self):
-        grid = Grid((0, 1))
+        grid = Grid((0, 1), size=2)
         self.assertEqual(grid.move("right"), {"coordinate": (0, 1), "goal": True})
+        self.assertEqual(grid.move("right"), {"coordinate": (0, 1), "goal": False, "error": "move leaves the grid"})
 
     def test_parse_direction(self):
         self.assertEqual(parse_direction("right"), "right")

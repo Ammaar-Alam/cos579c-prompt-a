@@ -124,6 +124,7 @@ def run(
                 "tool": direction,
                 "coordinate": list(grid.position),
                 "goal": result["goal"],
+                "error": result.get("error"),
             })
         success = grid.position == goal
         if use_memory and success:

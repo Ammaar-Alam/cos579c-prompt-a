@@ -66,7 +66,7 @@ function render(state){
     const result=document.createElement('div');result.textContent='('+e.from.join(', ')+') → ('+e.coordinate.join(', ')+')';
     const protocol=document.createElement('code');protocol.textContent=JSON.stringify({tool:e.tool})+' → goal: '+e.goal;
     detail.append(title,result,protocol);
-    const outcome=document.createElement('span');outcome.className=e.goal?'ok':'';outcome.textContent=e.goal?'Goal found':'Not goal';
+    const outcome=document.createElement('span');outcome.className=e.goal?'ok':e.error?'bad':'';outcome.textContent=e.goal?'Goal found':e.error?'Blocked':'Not goal';
     row.append(step,detail,outcome);feed.append(row);
   });
   feed.scrollTop=scroll;

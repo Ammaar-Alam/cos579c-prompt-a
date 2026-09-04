@@ -19,7 +19,8 @@ class Grid:
         row, column = self.position
         next_position = (row, column + 1) if direction == "right" else (row + 1, column)
         if not all(0 <= value < self.size for value in next_position):
-            raise ValueError("move leaves the grid")
+            self.calls += 1
+            return {"coordinate": self.position, "goal": False, "error": "move leaves the grid"}
         self.position = next_position
         self.calls += 1
         return {"coordinate": self.position, "goal": self.position == self.goal}
