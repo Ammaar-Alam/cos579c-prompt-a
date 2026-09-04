@@ -20,7 +20,7 @@ The six shared episodes live in [`episodes.json`](episodes.json). Both condition
 
 Prerequisites:
 
-- Python 3.10 or newer
+- Python 3.9 or newer
 - An authenticated `codex` CLI
 - An authenticated `claude` CLI
 
@@ -36,10 +36,10 @@ Run all four conditions:
 python3 run_all.py
 ```
 
-This runs Codex baseline, Codex memory, Claude baseline, and Claude memory against the same episodes. Codex uses `codex exec --model codex-p4`. Claude uses `claude -p` and its configured default model. To run one condition with a different model:
+This runs Codex baseline, Codex memory, Claude baseline, and Claude memory against the same episodes. Codex uses `codex exec --model gpt-5.6-luna` with low reasoning effort. Claude uses `claude -p` and its configured default model. To run one condition with a different model:
 
 ```bash
-python3 run_experiment.py codex --model codex-p4 --memory
+python3 run_experiment.py codex --model gpt-5.6-luna --memory
 python3 run_experiment.py claude --memory
 ```
 

@@ -7,6 +7,7 @@ import subprocess
 import urllib.error
 import urllib.request
 from pathlib import Path
+from typing import Optional
 
 from grid_agent import Grid
 
@@ -16,7 +17,7 @@ MOVE_RE = re.compile(r"\b(right|down)\b", re.IGNORECASE)
 DECISION_SCHEMA = json.loads((ROOT / "decision.schema.json").read_text())
 
 
-def post_event(url: str | None, event: dict[str, object]) -> None:
+def post_event(url: Optional[str], event: dict[str, object]) -> None:
     if not url:
         return
     try:
@@ -31,7 +32,7 @@ def post_event(url: str | None, event: dict[str, object]) -> None:
         pass
 
 
-def _find_tool(value: object) -> str | None:
+def _find_tool(value: object) -> Optional[str]:
     if isinstance(value, dict):
         if isinstance(value.get("tool"), str):
             return value["tool"]
@@ -61,10 +62,10 @@ def parse_direction(output: str) -> str:
     return match.group(1).lower()
 
 
-def ask(provider: str, prompt: str, model: str | None, timeout: int) -> str:
+def ask(provider: str, prompt: str, model: Optional[str], timeout: int) -> str:
     if provider == "codex":
         command = [
-            "codex", "exec", "--model", model, "--sandbox", "read-only",
+            "codex", "exec", "--model", model, "--config", 'model_reasoning_effort="low"', "--sandbox", "read-only",
             "--output-schema", str(ROOT / "decision.schema.json"), "--json", "-",
         ]
     else:
@@ -92,11 +93,11 @@ Observed goal coordinates remembered from earlier episodes: {json.dumps(memory)}
 
 def run(
     provider: str,
-    model: str | None,
+    model: Optional[str],
     episodes: list[tuple[int, int]],
     use_memory: bool,
     timeout: int,
-    dashboard_url: str | None = None,
+    dashboard_url: Optional[str] = None,
 ) -> list[dict[str, object]]:
     memory: list[list[int]] = []
     results = []
@@ -145,7 +146,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--dashboard-url")
     args = parser.parse_args()
-    model = args.model or ("codex-p4" if args.provider == "codex" else None)
+    model = args.model or ("gpt-5.6-luna" if args.provider == "codex" else None)
     episodes = [tuple(item) for item in json.loads(args.episodes.read_text())]
     results = run(args.provider, model, episodes, args.memory, args.timeout, args.dashboard_url)
     payload = {
