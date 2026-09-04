@@ -1,24 +1,94 @@
 # Prompt A: Does Memory Help?
 
-A minimal grid-navigation benchmark for COS 579C. Each episode places a goal in a 5×5 grid. The agent starts at `(0, 0)` and may call `right` or `down`; every tool result returns the updated coordinate and whether it is the goal.
+This repository is a small, local benchmark for COS 579C. It compares an agent with no memory against the same agent with simple episodic memory.
 
-The memory agent stores the goal coordinate after each episode. The baseline does not. Compare agents by tool calls required to reach the goal across the same episodes, including at least one episode where memory makes performance worse (for example, when the goal changes).
+## Experiment
 
-## Run
+Each episode uses a 5×5 grid:
+
+- The agent always starts at `(0, 0)`.
+- The goal is hidden from the agent.
+- The only available tools are `right` and `down`.
+- After every move, the environment returns the new coordinate and `goal: true` or `false`.
+- The score is the number of tool decisions needed to find the goal.
+
+The baseline receives the current coordinate and previous results. The memory condition additionally receives the successful goal coordinates observed in earlier episodes. Memory is intentionally small and transparent so we can inspect exactly what was given to the model.
+
+The six shared episodes live in [`episodes.json`](episodes.json). Both conditions use the same order. The changing goals provide a case where stale memory can make performance worse.
+
+## Run everything
+
+Prerequisites:
+
+- Python 3.10 or newer
+- An authenticated `codex` CLI
+- An authenticated `claude` CLI
+
+Check the local implementation without calling a model:
 
 ```bash
-python3 grid_agent.py
 python3 -m unittest -v
+```
+
+Run all four conditions:
+
+```bash
 python3 run_all.py
 ```
 
-For a live localhost view, run `python3 dashboard.py`, open <http://127.0.0.1:8765>, and press **Start run**. The page shows the 5×5 board, each JSON tool decision, returned coordinate/goal status, and the four-condition ledger while `run_all.py` executes.
+This runs Codex baseline, Codex memory, Claude baseline, and Claude memory against the same episodes. Codex uses `codex exec --model codex-p4`. Claude uses `claude -p` and its configured default model. To run one condition with a different model:
 
-`run_all.py` invokes all four conditions against the same `episodes.json` file:
+```bash
+python3 run_experiment.py codex --model codex-p4 --memory
+python3 run_experiment.py claude --memory
+```
 
-- Codex baseline and memory, using `codex exec --model codex-p4`
-- Claude baseline and memory, using `claude -p` (or its `--model` if you run `run_experiment.py` directly)
+Results are written to `results/` as JSON and ignored by Git. Each result includes the provider, model, condition, per-episode `calls` and `success`, and `remembered_goals`.
 
-`run_experiment.py` invokes one CLI decision per move. The goal stays in the harness; each call receives the current coordinate, prior tool results, and (for the memory condition) remembered successful goal coordinates. The harness executes the move and returns the coordinate/goal result to the next call.
+## JSON decisions
 
-Results are written to `results/` and are not committed. Compare `calls` and `success` in the four JSON files. Authentication is handled by the local CLIs.
+The model is asked to return exactly one object:
+
+```json
+{"tool": "right"}
+```
+
+The shared [`decision.schema.json`](decision.schema.json) is passed to both CLIs. Codex uses `--output-schema` and `--json`; Claude uses `--json-schema` and `--output-format json`. The harness parses the structured response, executes the move, then includes the tool result in the next prompt.
+
+## Live dashboard
+
+Start the localhost dashboard:
+
+```bash
+python3 dashboard.py
+```
+
+Then open <http://127.0.0.1:8765> and press **Start run**. It shows the current 5×5 board and visited path, each model decision and returned coordinate, goal status, and call count for each condition.
+
+The dashboard starts `run_all.py` for you. If you prefer to start the experiment from a second terminal, use:
+
+```bash
+# Terminal 1
+python3 dashboard.py
+
+# Terminal 2
+python3 run_all.py --dashboard-url http://127.0.0.1:8765
+```
+
+To watch just one condition in the dashboard:
+
+```bash
+python3 run_experiment.py codex --memory --dashboard-url http://127.0.0.1:8765
+```
+
+Stop the dashboard with `Ctrl-C` in its terminal.
+
+Press **Clear** when the run is idle to reset the dashboard view. Memory is not persisted: every new `run_all.py` run starts with an empty memory list, and stopping/restarting the dashboard also clears its view. There is no hidden Codex or Claude conversation state because each decision uses a fresh non-interactive CLI call.
+
+## Files
+
+- [`grid_agent.py`](grid_agent.py): the grid tool and deterministic demo.
+- [`run_experiment.py`](run_experiment.py): one provider, one condition, and one episode sequence.
+- [`run_all.py`](run_all.py): the four-condition experiment.
+- [`dashboard.py`](dashboard.py): dependency-free localhost UI and event receiver.
+- [`test_grid_agent.py`](test_grid_agent.py): checks for the tool and JSON protocol.
