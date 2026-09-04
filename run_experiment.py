@@ -74,7 +74,8 @@ def ask(provider: str, prompt: str, model: str | None, timeout: int) -> str:
         ] + (["--model", model] if model else [])
     result = subprocess.run(command, cwd=ROOT, input=prompt, text=True, capture_output=True, timeout=timeout)
     if result.returncode:
-        raise RuntimeError(result.stderr.strip() or f"{provider} exited {result.returncode}")
+        detail = result.stderr.strip() or result.stdout.strip()
+        raise RuntimeError(detail or f"{provider} exited {result.returncode}")
     return result.stdout
 
 

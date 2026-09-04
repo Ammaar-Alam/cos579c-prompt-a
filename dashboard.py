@@ -27,7 +27,7 @@ button{border:0;background:var(--ink);color:var(--white);padding:11px 17px;font-
 .ledger{margin-top:28px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.run{background:var(--white);border:1px solid var(--line);padding:12px}.run b{display:block;font-size:12px}.run span{font:22px Georgia,serif}.run small{display:block;color:var(--muted);font-size:11px;margin-top:5px}.run.active{border-color:var(--amber)}
 @keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@media(max-width:800px){.top{display:block}.actions{margin-top:20px}.layout{grid-template-columns:1fr}.feed{height:320px}.ledger{grid-template-columns:repeat(2,1fr)}}@media(prefers-reduced-motion:reduce){.event{animation:none}}
 </style></head><body><main>
-<header class="top"><div><div class="eyebrow">COS 579C · Prompt A</div><h1>Does memory help?</h1><p>A live look at the next move, the tool result, and the cost of getting there.</p></div><div class="actions"><span id="status" class="status">Ready · memory resets per run</span><button id="reset" class="secondary">Clear</button><button id="start">Start run</button></div></header>
+<header class="top"><div><div class="eyebrow">COS 579C · Prompt A</div><h1>Does memory help?</h1><p>A live look at the next move, the tool result, and the cost of getting there.</p></div><div class="actions"><label class="status">Provider <select id="provider"><option value="codex">Codex</option><option value="claude">Claude</option></select></label><label class="status">Condition <select id="condition"><option value="baseline">baseline</option><option value="memory">memory</option></select></label><span id="status" class="status">Ready · memory resets per run</span><button id="reset" class="secondary">Clear</button><button id="start">Start run</button></div></header>
 <section class="layout"><div class="panel"><h2>Live board <span id="board-label"></span></h2><div class="board-wrap"><div id="board" class="board"></div><div class="legend"><span><i class="dot"></i>current</span><span><i class="dot path"></i>visited</span><span><i class="dot goal"></i>goal</span></div></div></div>
 <div class="panel"><h2>Decision feed</h2><div id="feed" class="feed"><div class="empty">Start a run to watch the agent search.</div></div></div></section>
 <section class="panel ledger"><div class="run" data-key="codex-baseline"><b>Codex · baseline</b><span>—</span><small>waiting</small></div><div class="run" data-key="codex-memory"><b>Codex · memory</b><span>—</span><small>waiting</small></div><div class="run" data-key="claude-baseline"><b>Claude · baseline</b><span>—</span><small>waiting</small></div><div class="run" data-key="claude-memory"><b>Claude · memory</b><span>—</span><small>waiting</small></div></section>
@@ -35,8 +35,8 @@ button{border:0;background:var(--ink);color:var(--white);padding:11px 17px;font-
 const $=s=>document.querySelector(s), state={events:[]};
 function cell(r,c){return $("[data-cell='"+r+"-"+c+"']")}
 function draw(e){const b=$("#board");b.innerHTML="";for(let r=0;r<5;r++)for(let c=0;c<5;c++){const x=document.createElement("div");x.className="cell";x.dataset.cell=r+"-"+c;x.innerHTML=`<small>${r},${c}</small>`;b.append(x)};const paths=e.filter(x=>x.type==='decision'&&x.provider===state.provider&&x.condition===state.condition&&x.episode===state.episode);paths.forEach(x=>cell(...x.coordinate).classList.add('path'));if(state.goal){cell(...state.goal).classList.add('goal')}if(state.position)cell(...state.position).classList.add('current');$("#board-label").textContent=state.episode?`· ${state.provider} ${state.condition} · episode ${state.episode}`:""}
-function render(){const e=state.events;$("#status").textContent=state.running?`Running · ${state.provider||''} ${state.condition||''}`:(state.exit_code===0?"Complete · memory reset next run":"Ready · memory resets per run");const feed=$("#feed");feed.innerHTML="";const decisions=e.filter(x=>x.type==='decision').slice(-80).reverse();if(!decisions.length)feed.innerHTML='<div class="empty">Start a run to watch the agent search.</div>';decisions.forEach(x=>{const row=document.createElement('div');row.className='event';row.innerHTML=`<time>#${x.call}</time><div><strong>${x.provider} · ${x.condition}</strong><br><span>episode ${x.episode} · <code>${x.tool}</code> → (${x.coordinate.join(', ')})</span></div><span class="${x.goal?'ok':''}">${x.goal?'goal':'—'}</span>`;feed.append(row)});const last=decisions[0];if(last){Object.assign(state,{provider:last.provider,condition:last.condition,episode:last.episode,position:last.coordinate,goal:last.goal?last.coordinate:null});draw(e)};e.filter(x=>x.type==='episode').forEach(x=>{const box=$(`[data-key='${x.provider}-${x.condition}']`);if(box){box.className='run';box.querySelector('span').textContent=x.calls;box.querySelector('small').textContent=x.success?'goal found':'not found'}});$("#start").disabled=state.running;$("#reset").disabled=state.running}
-async function poll(){const incoming=await fetch('/state').then(r=>r.json());Object.assign(state,incoming);render();setTimeout(poll,400)}$("#start").onclick=()=>fetch('/start',{method:'POST'});$("#reset").onclick=()=>fetch('/reset',{method:'POST'});poll();
+function render(){const e=state.events;$("#status").textContent=state.running?`Running · ${state.provider||''} ${state.condition||''}`:(state.error?"Error · see feed":(state.exit_code===0?"Complete · memory reset next run":"Ready · memory resets per run"));const feed=$("#feed");feed.innerHTML="";const decisions=e.filter(x=>x.type==='decision').slice(-80).reverse();if(state.error){const row=document.createElement('div');row.className='event';row.innerHTML=`<time>!</time><div><strong>Runner error</strong><br><code>${state.error}</code></div><span class="bad">stop</span>`;feed.append(row)}if(!decisions.length&&!state.error)feed.innerHTML='<div class="empty">Start a run to watch the agent search.</div>';decisions.forEach(x=>{const row=document.createElement('div');row.className='event';row.innerHTML=`<time>#${x.call}</time><div><strong>${x.provider} · ${x.condition}</strong><br><span>episode ${x.episode} · <code>${x.tool}</code> → (${x.coordinate.join(', ')})</span></div><span class="${x.goal?'ok':''}">${x.goal?'goal':'—'}</span>`;feed.append(row)});const last=decisions[0];if(last){Object.assign(state,{provider:last.provider,condition:last.condition,episode:last.episode,position:last.coordinate,goal:last.goal?last.coordinate:null});draw(e)};e.filter(x=>x.type==='episode').forEach(x=>{const box=$(`[data-key='${x.provider}-${x.condition}']`);if(box){box.className='run';box.querySelector('span').textContent=x.calls;box.querySelector('small').textContent=x.success?'goal found':'not found'}});$("#start").disabled=state.running;$("#reset").disabled=state.running}
+async function poll(){const incoming=await fetch('/state').then(r=>r.json());Object.assign(state,incoming);render();setTimeout(poll,400)}$("#start").onclick=()=>fetch('/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:$("#provider").value,memory:$("#condition").value==='memory'})});$("#reset").onclick=()=>fetch('/reset',{method:'POST'});poll();
 </script></body></html>'''
 
 
@@ -67,13 +67,20 @@ class Handler(BaseHTTPRequestHandler):
                 STATE["running"] = True
             self._send(204, "text/plain", b"")
         elif self.path == "/start":
+            length = int(self.headers.get("Content-Length", 0))
+            options = json.loads(self.rfile.read(length) or b"{}")
+            provider = options.get("provider", "codex")
+            memory = bool(options.get("memory", False))
+            if provider not in {"codex", "claude"}:
+                self._send(400, "text/plain", b"unknown provider")
+                return
             with LOCK:
                 if STATE["running"]:
                     self._send(409, "text/plain", b"already running")
                     return
                 STATE.update({"running": True, "events": [], "exit_code": None})
             port = self.server.server_address[1]
-            thread = threading.Thread(target=run_all, args=(port,), daemon=True)
+            thread = threading.Thread(target=run_one, args=(port, provider, memory), daemon=True)
             thread.start()
             self._send(202, "text/plain", b"started")
         elif self.path == "/reset":
@@ -90,14 +97,27 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
-def run_all(port: int) -> None:
+def run_one(port: int, provider: str, memory: bool) -> None:
+    condition = "memory" if memory else "baseline"
+    command = [
+        sys.executable, str(ROOT / "run_experiment.py"), provider,
+        "--dashboard-url", f"http://127.0.0.1:{port}",
+        "--output", str(ROOT / "results" / f"{provider}-{condition}.json"),
+    ]
+    if memory:
+        command.append("--memory")
     result = subprocess.run(
-        [sys.executable, str(ROOT / "run_all.py"), "--dashboard-url", f"http://127.0.0.1:{port}"],
+        command,
         cwd=ROOT,
+        capture_output=True,
+        text=True,
     )
     with LOCK:
         STATE["running"] = False
         STATE["exit_code"] = result.returncode
+        STATE["provider"] = provider
+        STATE["condition"] = condition
+        STATE["error"] = result.stderr.strip() or result.stdout.strip() if result.returncode else None
 
 
 def main() -> None:
