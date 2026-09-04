@@ -45,6 +45,8 @@ python3 run_experiment.py codex --model gpt-5.6-luna --memory
 python3 run_experiment.py claude --memory
 ```
 
+Both providers use low reasoning effort. Codex skips personal configuration and session persistence; Claude disables built-in tools and session persistence. Each move still makes a fresh model request, so response latency remains. The dashboard adds no intentional delay between decisions.
+
 Results are written to [`results/`](results/) as committed JSON evidence. Each episode also gets an animated decision trace in `results/gifs/`. `run_all.py` writes [`results/summary.md`](results/summary.md) and [`results/index.html`](results/index.html), comparing solved episodes, total calls, remembered goals, failures, and GIF links in a readable page.
 
 ## JSON decisions

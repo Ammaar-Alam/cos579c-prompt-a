@@ -66,12 +66,14 @@ def parse_direction(output: str) -> str:
 def ask(provider: str, prompt: str, model: Optional[str], timeout: int) -> str:
     if provider == "codex":
         command = [
-            "codex", "exec", "--model", model, "--config", 'model_reasoning_effort="low"', "--sandbox", "read-only",
+            "codex", "exec", "--ignore-user-config", "--ephemeral",
+            "--model", model, "--config", 'model_reasoning_effort="low"', "--sandbox", "read-only",
             "--output-schema", str(ROOT / "decision.schema.json"), "--json", "-",
         ]
     else:
         command = [
-            "claude", "-p", "--bare", "--output-format", "json",
+            "claude", "-p", "--bare", "--effort", "low", "--tools", "",
+            "--no-session-persistence", "--output-format", "json",
             "--json-schema", json.dumps(DECISION_SCHEMA),
         ] + (["--model", model] if model else [])
     result = subprocess.run(command, cwd=ROOT, input=prompt, text=True, capture_output=True, timeout=timeout)
@@ -84,7 +86,7 @@ def ask(provider: str, prompt: str, model: Optional[str], timeout: int) -> str:
 def decision_prompt(position: tuple[int, int], history: list[dict[str, object]], memory: list[list[int]]) -> str:
     return f"""Navigate a hidden goal on a 5-by-5 grid.
 Start is always (0, 0). You may choose only right or down. The grid boundary is 0..4 in each coordinate.
-Choose exactly one next move. Reply with only the word right or down.
+Choose exactly one next move. Reply only with JSON: {{"tool":"right"}} or {{"tool":"down"}}. Do not use other tools.
 After the move, the environment will report the updated coordinate and whether it is the goal.
 Current coordinate: {position}
 Previous tool results: {json.dumps(history)}
