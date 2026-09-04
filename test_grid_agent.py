@@ -1,12 +1,16 @@
 import unittest
 
 from grid_agent import Agent, Grid
+from run_experiment import parse_direction
 
 
 class GridAgentTests(unittest.TestCase):
     def test_tool_returns_coordinate_and_goal(self):
         grid = Grid((0, 1))
         self.assertEqual(grid.move("right"), {"coordinate": (0, 1), "goal": True})
+
+    def test_parse_direction(self):
+        self.assertEqual(parse_direction("right"), "right")
 
     def test_agents_reach_goal_and_memory_can_hurt(self):
         baseline = Agent()
