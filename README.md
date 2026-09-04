@@ -24,6 +24,7 @@ Prerequisites:
 - Python 3.9 or newer
 - An authenticated `codex` CLI
 - An authenticated `claude` CLI
+- Pillow (`python3 -m pip install -r requirements.txt`)
 
 Check the local implementation without calling a model:
 
@@ -44,7 +45,7 @@ python3 run_experiment.py codex --model gpt-5.6-luna --memory
 python3 run_experiment.py claude --memory
 ```
 
-Results are written to [`results/`](results/) as committed JSON evidence. `run_all.py` also writes [`results/summary.md`](results/summary.md), comparing solved episodes, total calls, remembered goals, and failures. Each successful result includes the provider, model, condition, per-episode `calls` and `success`, and `remembered_goals`.
+Results are written to [`results/`](results/) as committed JSON evidence. Each episode also gets an animated decision trace in `results/gifs/`. `run_all.py` writes [`results/summary.md`](results/summary.md) and [`results/index.html`](results/index.html), comparing solved episodes, total calls, remembered goals, failures, and GIF links in a readable page.
 
 ## JSON decisions
 
