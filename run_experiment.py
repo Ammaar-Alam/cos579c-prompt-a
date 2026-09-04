@@ -72,7 +72,7 @@ def ask(provider: str, prompt: str, model: Optional[str], timeout: int) -> str:
         ]
     else:
         command = [
-            "claude", "-p", "--bare", "--effort", "low", "--tools", "",
+            "claude", "-p", "--safe-mode", "--effort", "low", "--tools", "",
             "--no-session-persistence", "--output-format", "json",
             "--json-schema", json.dumps(DECISION_SCHEMA),
         ] + (["--model", model] if model else [])

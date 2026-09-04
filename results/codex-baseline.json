@@ -1,0 +1,68 @@
+{
+  "provider": "codex",
+  "model": "gpt-5.6-luna",
+  "memory": false,
+  "remembered_goals": [],
+  "episodes": [
+    {
+      "episode": 1,
+      "goal": [
+        0,
+        2
+      ],
+      "calls": 8,
+      "success": false,
+      "gif": "gifs/codex-baseline-episode-1.gif"
+    },
+    {
+      "episode": 2,
+      "goal": [
+        2,
+        4
+      ],
+      "calls": 6,
+      "success": true,
+      "gif": "gifs/codex-baseline-episode-2.gif"
+    },
+    {
+      "episode": 3,
+      "goal": [
+        1,
+        4
+      ],
+      "calls": 5,
+      "success": true,
+      "gif": "gifs/codex-baseline-episode-3.gif"
+    },
+    {
+      "episode": 4,
+      "goal": [
+        3,
+        1
+      ],
+      "calls": 8,
+      "success": false,
+      "gif": "gifs/codex-baseline-episode-4.gif"
+    },
+    {
+      "episode": 5,
+      "goal": [
+        4,
+        4
+      ],
+      "calls": 8,
+      "success": true,
+      "gif": "gifs/codex-baseline-episode-5.gif"
+    },
+    {
+      "episode": 6,
+      "goal": [
+        2,
+        1
+      ],
+      "calls": 8,
+      "success": false,
+      "gif": "gifs/codex-baseline-episode-6.gif"
+    }
+  ]
+}

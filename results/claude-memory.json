@@ -1,0 +1,7 @@
+{
+  "provider": "claude",
+  "condition": "memory",
+  "status": "failed",
+  "error": "Not logged in · Please run /login",
+  "note": "This attempt used --bare, which bypasses normal CLI login storage. Future runs use --safe-mode; no Claude episode results were produced."
+}
