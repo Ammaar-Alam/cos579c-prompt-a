@@ -104,6 +104,11 @@ def run(
     for index, goal in enumerate(episodes, start=1):
         grid = Grid(goal)
         history: list[dict[str, object]] = []
+        post_event(dashboard_url, {
+            "type": "episode_start", "provider": provider,
+            "condition": "memory" if use_memory else "baseline",
+            "episode": index, "goal": list(goal), "coordinate": [0, 0],
+        })
         while grid.calls < 2 * (grid.size - 1) and grid.position != goal:
             remembered = memory if use_memory else []
             direction = parse_direction(ask(provider, decision_prompt(grid.position, history, remembered), model, timeout))
